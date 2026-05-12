@@ -7,6 +7,10 @@ OscP5 oscP5;
 NetAddress superColliderDest;
 NetAddress juceDest;
 
+int potValue = 1;
+int heartValue = 0;
+int buttonValue = 0;
+
 void setup() {
   size(200, 200);
   
@@ -27,9 +31,58 @@ void setup() {
 
 void draw() {
   background(50);
+  stroke(255);
+  strokeWeight(3);
+  fill(255);
+
+  float cx = width * 0.5;
+  float cy = height * 0.5;
+  float r = 55;
+
+  // In base al valore del potenziometro disegna da 1 a 4 punti collegati
+  if (potValue == 1) {
+    point(cx, cy);
+  } else if (potValue == 2) {
+    float x1 = cx - r;
+    float x2 = cx + r;
+    line(x1, cy, x2, cy);
+    point(x1, cy);
+    point(x2, cy);
+  } else if (potValue == 3) {
+    float x1 = cx;
+    float y1 = cy - r;
+    float x2 = cx - r;
+    float y2 = cy + r;
+    float x3 = cx + r;
+    float y3 = cy + r;
+    line(x1, y1, x2, y2);
+    line(x2, y2, x3, y3);
+    line(x3, y3, x1, y1);
+    point(x1, y1);
+    point(x2, y2);
+    point(x3, y3);
+  } else {
+    float x1 = cx - r;
+    float y1 = cy - r;
+    float x2 = cx + r;
+    float y2 = cy - r;
+    float x3 = cx + r;
+    float y3 = cy + r;
+    float x4 = cx - r;
+    float y4 = cy + r;
+    line(x1, y1, x2, y2);
+    line(x2, y2, x3, y3);
+    line(x3, y3, x4, y4);
+    line(x4, y4, x1, y1);
+    point(x1, y1);
+    point(x2, y2);
+    point(x3, y3);
+    point(x4, y4);
+  }
+
   fill(255);
   textAlign(CENTER, CENTER);
-  text("Bridge Serial -> OSC\nIn esecuzione...", width/2, height/2);
+  text("Bridge Serial -> OSC\nIn esecuzione...\nPot: " + potValue + " Heart: " + heartValue + " Btn: " + buttonValue, width/2, 20);
 }
 
 void serialEvent(Serial myPort) {
@@ -47,6 +100,10 @@ void serialEvent(Serial myPort) {
         int pot = int(parts[1]);
         int heart = int(parts[2]);
         int button = int(parts[3]);
+
+        potValue = constrain(pot, 1, 4);
+        heartValue = heart;
+        buttonValue = button;
         
         // Creiamo il pacchetto OSC
         OscMessage myMessage = new OscMessage("/arduino/sensors");

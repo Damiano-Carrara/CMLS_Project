@@ -8,7 +8,8 @@ void setup() {
 }
 
 void loop() {
-  int potValue = analogRead(potPin);
+  int potRaw = analogRead(potPin);
+  int potValue = map(potRaw, 0, 1023, 1, 4);
   int heartValue = analogRead(heartPin);
   int buttonValue = (digitalRead(buttonPin) == LOW) ? 1 : 0;
 
