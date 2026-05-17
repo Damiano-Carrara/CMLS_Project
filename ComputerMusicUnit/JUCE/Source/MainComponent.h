@@ -46,8 +46,8 @@ private:
 
     // --- Noise Gate ---
     float gateThreshold = 0.01f;
-    float gateAttack = 0.01f;
-    float gateRelease = 0.1f;
+    float gateAttack = 0.002f;
+    float gateRelease = 0.05f;
     float gateAttackCoeff = 0.0f;
     float gateReleaseCoeff = 0.0f;
     float gateEnvGuitar = 0.0f;
@@ -65,8 +65,8 @@ private:
     float compEnvVoice = 0.0f;
 
     // --- Envelope Follower ---
-    float envFollowerAttack = 0.01f;
-    float envFollowerRelease = 0.3f;
+    float envFollowerAttack = 0.002f;
+    float envFollowerRelease = 0.05f;
     float envFollowerAttackCoeff = 0.0f;
     float envFollowerReleaseCoeff = 0.0f;
     float envGuitar = 0.0f;
@@ -102,6 +102,11 @@ private:
 
     int currentPreset = 0;
     juce::Label presetLabel;
+
+    juce::TextButton settingsButton;
+
+    juce::Label pitchDebugLabel;
+    juce::Label envDebugLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

@@ -9,6 +9,10 @@ MainComponent::MainComponent()
 {
     setSize(800, 600);
 
+    // 1. Forza JUCE a preferire ASIO (aggirando così il crash di WASAPI su Windows)
+    deviceManager.setCurrentAudioDeviceType("ASIO", true);
+
+    // 2. Chiamata standard protetta (ora userà ASIO di default)
     if (juce::RuntimePermissions::isRequired(juce::RuntimePermissions::recordAudio)
         && !juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio))
     {
@@ -19,6 +23,25 @@ MainComponent::MainComponent()
     {
         setAudioChannels(2, 2);
     }
+
+    // 3. Configurazione del pulsante per aprire il pannello Audio
+    settingsButton.setButtonText("Impostazioni Audio...");
+    settingsButton.onClick = [this]
+        {
+            juce::DialogWindow::LaunchOptions o;
+            o.content.setOwned(new juce::AudioDeviceSelectorComponent(deviceManager, 2, 2, 2, 2, false, false, true, false));
+            o.content->setSize(400, 600);
+            o.dialogTitle = "Audio Settings";
+            o.launchAsync();
+        };
+    addAndMakeVisible(settingsButton);
+
+    pitchDebugLabel.setText("Pitch: -- Hz", juce::dontSendNotification);
+    pitchDebugLabel.setFont(juce::Font(24.0f, juce::Font::bold)); // Font grande e leggibile
+    addAndMakeVisible(pitchDebugLabel);
+
+    envDebugLabel.setText("Env: --", juce::dontSendNotification);
+    addAndMakeVisible(envDebugLabel);
 
     if (!oscSender.connect(oscSendHost, oscSendPort))
         juce::Logger::writeToLog("Critical Error: Unable to connect OSC sender to port 57120.");
@@ -41,6 +64,11 @@ void MainComponent::timerCallback()
 {
     oscSender.send("/envelope/guitar", envGuitar);
     oscSender.send("/envelope/voice", envVoice);
+
+    // Aggiorna le scritte sulla UI
+    pitchDebugLabel.setText("Pitch: " + juce::String(detectedPitch, 1) + " Hz", juce::dontSendNotification);
+    envDebugLabel.setText("Env: " + juce::String(envGuitar, 3), juce::dontSendNotification);
+
     repaint();
 }
 
@@ -105,6 +133,7 @@ void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& buffer
             // Run YIN Algorithm on the unrolled frame
             detectedPitch = detectPitchYIN(frame.data(), windowSize, currentSampleRate);
 
+
             if (detectedPitch > 0.0f)
             {
                 sendPitchToSuperCollider(detectedPitch);
@@ -126,7 +155,14 @@ void MainComponent::paint(juce::Graphics& g)
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
-void MainComponent::resized() {}
+void MainComponent::resized() 
+{
+    settingsButton.setBounds(10, 10, 160, 30);
+
+    // Posizioniamo le label sotto il pulsante delle impostazioni
+    pitchDebugLabel.setBounds(10, 60, 300, 40);
+    envDebugLabel.setBounds(10, 100, 300, 30);
+}
 
 // --- DSP IMPLEMENTATIONS ---
 
